@@ -65,10 +65,16 @@ markerIcon <- makeIcon(
   shadowWidth = 41, shadowHeight = 41,
   shadowAnchorX = 13, shadowAnchorY = 41)
 
-leaflet(locations) %>% 
+if (0) {leaflet(locations) %>% 
   addTiles() %>% 
   addMarkers(~ Longitude, ~ Latitude, popup = ~ Location, icon = markerIcon)
+}
 
+# Fix erroneous longitudes
+locs <- locations %>% mutate(Longitude = abs(Longitude) * -1)
 
+leaflet(locs) %>% 
+  addTiles() %>% 
+  addMarkers(~ Longitude, ~ Latitude, popup = ~ Location, icon = markerIcon)
 ```
 
