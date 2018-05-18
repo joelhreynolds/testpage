@@ -1,5 +1,5 @@
 ---
-title: "tes"
+title: "test"
 author: "Joel H. Reynolds"
 date: "5/18/2018"
 output: html_document
@@ -7,6 +7,50 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+suppressPackageStartupMessages({
+  library(leaflet)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(DT)
+})
+```
+
+
+```{r}
+esc <- read.csv(url("https://knb.ecoinformatics.org/knb/d1/mn/v2/object/knb.92020.1", method = "libcurl"), 
+                stringsAsFactors = FALSE)
+```
+
+```{r}
+#Calculate median escapement
+median_esc <- esc %>% 
+  separate(sampleDate, c("Year", "Month", "Day"), sep = "-") %>% 
+  group_by(Species, SASAP.Region, Year, Location) %>%   #for each Species, Region, Year, Location
+  summarize(escapement = sum(DailyCount)) %>%           # calculate the annual total escapement
+  group_by(Species) %>%                                 # now sum across regions, locations, and years
+  summarize(median_escapement = median(escapement))
+
+ggplot(median_esc, aes(Species, median_escapement)) +
+  geom_col() +
+  coord_flip()
+```
+
+
+```{r echo=FALSE}
+locations <- esc %>% 
+  distinct(Location, Latitude, Longitude) %>% 
+  drop_na()
+
+datatable(locations)
+
+#Easy way to add R data on top of maps
+leaflet(locations) %>% 
+  addTiles() %>%    #background of the map, from OpenStreet
+  addMarkers(~ Longitude, ~ Latitude, popup = ~ Location)
 ```
 
 ## R Markdown
